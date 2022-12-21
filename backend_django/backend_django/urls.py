@@ -15,7 +15,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from rest_framework.routers import SimpleRouter
+
+from bot_app.views import TelegramProfileView
+from coin_app.views import CoinView, MonitoredCoinView
+
+router = SimpleRouter()
+
+router.register('api/coins', CoinView)
+router.register('api/monitoredcoins', MonitoredCoinView)
+router.register('api/telegramprofiles', TelegramProfileView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
 ]
+
+urlpatterns += router.urls

@@ -1,7 +1,7 @@
 version: '3.9'
 services:
 
-  backend_django:
+  backend:
     container_name: Django-backend
     build: ./
     working_dir: /app/backend_django
@@ -20,7 +20,7 @@ services:
     command: python main.py
     restart: always
     depends_on:
-      - backend_django
+      - backend
 
   db:
     image: mysql:8.0
@@ -38,15 +38,22 @@ services:
       timeout: 20s
       retries: 5
   
-  celery:
+  worker:
     build: ./
-    container_name: Celery
+    container_name: Celery-worker
+    working_dir: /app/backend_django
+    command: celery -A backend_django worker -l INFO
+    depends_on:
+      - backend
+      - redis
+  
+  celery_beat:
+    build: ./
+    container_name: Celery-beat
     working_dir: /app/backend_django
     command: celery -A backend_django beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
-
     depends_on:
-      - backend_django
-      - redis
+      - worker
 
   redis:
     image: redis:7.0.7

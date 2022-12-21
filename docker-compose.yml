@@ -42,7 +42,7 @@ services:
     build: ./
     container_name: Celery
     working_dir: /app/backend_django
-    command: celery -A backend_django worker -B
+    command: celery -A backend_django beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
 
     depends_on:
       - backend_django

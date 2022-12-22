@@ -24,6 +24,12 @@ async def start_adding_monitored_coin(message: types.Message, state: FSMContext)
         reply_markup=cancel_keyboard)
 
 
+@dp.message_handler(text='Отмена', state='*')
+async def cancel_add_monitored_coin(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer(text='Действие отменено', reply_markup=start_keyboard)
+
+
 @dp.message_handler(filters.Text, state=AddMonitoredCoinStates.user_id)
 async def show_found_coins(message: types.Message, state: FSMContext):
     keyboard = await find_coins(message.text.upper())
@@ -67,9 +73,3 @@ async def add_monitored_coin(message: types.Message, state: FSMContext):
                     text='Криптовалюта успешна добавлена!',
                     reply_markup=start_keyboard)
     await state.finish()
-
-
-@dp.message_handler(text='Отмена', state='*')
-async def cancel_add_monitored_coin(message: types.Message, state: FSMContext):
-    await state.finish()
-    await message.answer(text='Действие отменено', reply_markup=start_keyboard)

@@ -1,4 +1,6 @@
 aiogram==2.23.1
+asyncio==3.4.3
+aioschedule==0.5.2
 aiohttp==3.8.3
 celery==5.2.3
 Django==4.1.4

@@ -7,8 +7,6 @@ from ..keyboards import find_coins, cb_add_monitored_coin, cancel_keyboard, star
 from ..settings import URL_USERS, URL_MONITORED_COINS
 from ..states import AddMonitoredCoinStates
 
-POSITIVE_DECIMAL_REGEXP = r'^(0*[1-9][0-9]*(\.[0-9]*)?|0*\.[0-9]*[1-9][0-9]*)$'
-
 
 @dp.message_handler(text='Добавить криптовалюту для отслеживания')
 async def start_adding_monitored_coin(message: types.Message, state: FSMContext):
@@ -46,17 +44,17 @@ async def show_found_coins(message: types.Message, state: FSMContext):
 @dp.callback_query_handler(cb_add_monitored_coin.filter(), state=AddMonitoredCoinStates.coin_id)
 async def expected_price(callback: types.CallbackQuery, callback_data: dict, state: FSMContext):
     async with state.proxy() as data:
-        data['coin_id'] = int(callback_data['coin_id'])
+        data['coin_id'] = callback_data['coin_id']
     await AddMonitoredCoinStates.next()
     await callback.message.edit_text(
         text=f'Текущий курс {callback_data["coin_name"]}: {float(callback_data["coin_price"])}$\n'
         f'Введите ожидаемый курс')
 
 
-@dp.message_handler(regexp=POSITIVE_DECIMAL_REGEXP, state=AddMonitoredCoinStates.expected_price)
+@dp.message_handler(regexp=r'^[0-9]+([\,\.][0-9]+)?$', state=AddMonitoredCoinStates.expected_price)
 async def add_monitored_coin(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
-        data['expected_price'] = float(message.text)
+        data['expected_price'] = float(message.text.replace(',', '.'))
     monitored_coin_data = {
         'coin_id': data['coin_id'],
         'user_id': data['user_id'],
@@ -73,3 +71,8 @@ async def add_monitored_coin(message: types.Message, state: FSMContext):
                     text='Криптовалюта успешна добавлена!',
                     reply_markup=start_keyboard)
     await state.finish()
+
+
+@dp.message_handler(filters.Text, state=AddMonitoredCoinStates.expected_price)
+async def not_digit(message: types.Message):
+    await message.answer(text='Пожалуйста, введите число.')
